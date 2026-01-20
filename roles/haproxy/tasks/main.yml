@@ -1,0 +1,17 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install HAProxy
+  apt:
+    name: haproxy
+    state: present
+
+- name: Deploy HAProxy config
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+  notify: Restart HAProxy
+
+- name: Validate HAProxy config
+  command: haproxy -c -f /etc/haproxy/haproxy.cfg

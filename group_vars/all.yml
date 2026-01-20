@@ -1,0 +1,8 @@
+apache_port: 8080
+nginx_port: 3000
+haproxy_stats_port: 8404
+
+backend_servers:
+  - { name: 'web1', ip: '192.168.33.238', port: 8080 }
+  - { name: 'web2', ip: '192.168.33.239', port: 8080 }
+  - { name: 'web3', ip: '192.168.33.240', port: 3000 }
