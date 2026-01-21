@@ -1,6 +1,520 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
+<head>
+    <title>{{ ansible_hostname }} - Server Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+        
+        body { 
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh; 
+            background: #0a0a0a;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            color: #fff;
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+        
+        /* Animated Green Gradient Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(5, 150, 105, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(4, 120, 87, 0.1) 0%, transparent 50%);
+            animation: pulseGlow 10s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Grid Pattern */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(5, 150, 105, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(5, 150, 105, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+        
+        /* Floating Particles */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #10B981;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 20s infinite;
+            box-shadow: 0 0 10px #10B981;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        .dashboard {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 
+                0 0 80px rgba(5, 150, 105, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(5, 150, 105, 0.3);
+            position: relative;
+        }
+        
+        .dashboard::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #059669, #10B981, #047857, #059669);
+            background-size: 300% 300%;
+            border-radius: 30px;
+            z-index: -1;
+            opacity: 0.3;
+            animation: borderGlow 3s ease-in-out infinite;
+            filter: blur(10px);
+        }
+        
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            animation: pulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.8));
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #059669, #10B981, #34D399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .status-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(34, 197, 94, 0.15);
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 0.95em;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #22C55E;
+            border-radius: 50%;
+            animation: blink 2s infinite;
+            box-shadow: 0 0 15px #22C55E;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.9); }
+        }
+        
+        /* Main Info */
+        .main-info {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .hostname {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #059669, #34D399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            text-shadow: 0 0 40px rgba(5, 150, 105, 0.5);
+            animation: glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(5, 150, 105, 0.5)); }
+            50% { filter: drop-shadow(0 0 40px rgba(5, 150, 105, 0.8)); }
+        }
+        
+        .ip-display {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.2), rgba(4, 120, 87, 0.15));
+            padding: 18px 45px;
+            border-radius: 50px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.6em;
+            font-weight: bold;
+            border: 2px solid rgba(5, 150, 105, 0.4);
+            letter-spacing: 3px;
+            box-shadow: 0 5px 30px rgba(5, 150, 105, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ip-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
+        }
+        
+        /* Info Grid - 2x2 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin: 45px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.08), rgba(4, 120, 87, 0.05));
+            border: 2px solid rgba(5, 150, 105, 0.3);
+            border-radius: 25px;
+            padding: 30px 25px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(5, 150, 105, 0.15), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+        }
+        
+        .info-card:hover::before {
+            left: 100%;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(5, 150, 105, 0.7);
+            box-shadow: 0 15px 50px rgba(5, 150, 105, 0.4);
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.15), rgba(4, 120, 87, 0.1));
+        }
+        
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.6));
+        }
+        
+        .card-label {
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #10B981;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        
+        .card-value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #E5E7EB;
+            word-break: break-word;
+        }
+        
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 45px;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 40px;
+            font-size: 1.15em;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+        
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #059669, #047857);
+            border-color: #059669;
+            color: white;
+            box-shadow: 0 10px 40px rgba(5, 150, 105, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(5, 150, 105, 0.6);
+        }
+        
+        .btn-secondary {
+            background: rgba(5, 150, 105, 0.15);
+            border-color: #059669;
+            color: #6EE7B7;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(5, 150, 105, 0.25);
+            border-color: #10B981;
+            color: white;
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(5, 150, 105, 0.4);
+        }
+        
+        .btn-icon {
+            animation: rotate 4s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Footer */
+        .footer {
+            margin-top: 45px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(5, 150, 105, 0.3);
+            text-align: center;
+            color: rgba(229, 231, 235, 0.6);
+            font-size: 0.95em;
+        }
+        
+        .footer-info {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hostname { font-size: 2.2em; }
+            h1 { font-size: 2em; }
+            .info-grid { 
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+            .button-group { 
+                flex-direction: column; 
+                align-items: stretch;
+            }
+            .ip-display { font-size: 1.2em; padding: 15px 30px; }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .info-grid {
+                max-width: 550px;
+            }
+        }
+    </style>
+</head>
 <body>
-<h1>Welcome {{ ansible_hostname }}</h1>
+    <div class="grid-bg"></div>
+    
+    <!-- Floating Particles -->
+    <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 30%; animation-delay: 3s;"></div>
+    <div class="particle" style="left: 50%; animation-delay: 6s;"></div>
+    <div class="particle" style="left: 70%; animation-delay: 9s;"></div>
+    <div class="particle" style="left: 90%; animation-delay: 12s;"></div>
+    
+    <div class="container">
+        <div class="dashboard">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">🚀</div>
+                <h1>SERVER DASHBOARD</h1>
+                <div class="status-bar">
+                    <div class="status-dot"></div>
+                    <span>SYSTEM ONLINE</span>
+                </div>
+            </div>
+            
+            <!-- Main Info -->
+            <div class="main-info">
+                <div class="hostname">{{ ansible_hostname }}</div>
+                <div class="ip-display">{{ ansible_default_ipv4.address }}</div>
+            </div>
+            
+            <!-- Info Grid 2x2 -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-icon">🖥️</div>
+                    <div class="card-label">Hostname</div>
+                    <div class="card-value">{{ ansible_hostname }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="card-icon">🌍</div>
+                    <div class="card-label">IP Address</div>
+                    <div class="card-value">{{ ansible_default_ipv4.address }}</div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="card-icon">⚡</div>
+                    <div class="card-label">Web Server</div>
+                    <div class="card-value">Apache2</div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="card-icon">📅</div>
+                    <div class="card-label">Deployed</div>
+                    <div class="card-value">{{ ansible_date_time.date }}</div>
+                </div>
+            </div>
+            
+            <!-- Buttons -->
+            <div class="button-group">
+                <a href="http://192.168.33.237:8404/stats" target="_blank" class="btn btn-primary">
+                    <span class="btn-icon">⚙️</span>
+                    <span>HAProxy Monitoring</span>
+                </a>
+                
+                <a href="date.html" class="btn btn-secondary">
+                    <span>🕐</span>
+                    <span>Date & Time</span>
+                </a>
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <p>🚀 Deployed with Ansible</p>
+                <div class="footer-info">
+                    <div class="footer-item">
+                        <span>📡</span>
+                        <span>Port: {{ apache_port }}</span>
+                    </div>
+                    <div class="footer-item">
+                        <span>⏰</span>
+                        <span>{{ ansible_date_time.date }} {{ ansible_date_time.time }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
